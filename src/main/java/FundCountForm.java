@@ -1,4 +1,5 @@
 import exceptions.FixerException;
+import helpers.Symbols;
 import services.CalculateService;
 
 import javax.swing.*;
@@ -34,7 +35,7 @@ public class FundCountForm {
                 Double amount = Double.parseDouble(FundCountForm.this.amount.getText());
 
                 try {
-                    result.setText(service.calculate(date.getText(), amount));
+                    result.setText(service.calculate(date.getText(), amount, Symbols.USD));
                 } catch (ParseException ex) {
                     JOptionPane.showMessageDialog(null,"Дата заполнена неверно.");
                 } catch (FixerException | IOException ex) {

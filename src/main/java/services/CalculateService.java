@@ -21,7 +21,13 @@ public class CalculateService {
     private OkHttpClient client = new OkHttpClient();
     private Gson gson = new Gson();
 
-    public String calculate(String date, Double amount) throws ParseException, IOException, FixerException {
+    /**
+     * @param date дата покупки валюты
+     * @param amount сумма купленной валюты
+     * @param currency код купленной валюты
+     * @return прибыль или убыток по сравнению с текущим курсом
+     */
+    public String calculate(String date, Double amount, Symbols currency) throws ParseException, IOException, FixerException {
         Date nowDate = new Date();
         String now = formatter.format(nowDate);
         if (nowDate.getTime() < formatter.parse(date).getTime()) {
@@ -38,13 +44,19 @@ public class CalculateService {
             throw new FixerException(pastData.getError().getInfo());
         }
 
-        double currentRubRate = getRubRate(Symbols.USD, currentData);
-        double pastRubRate = getRubRate(Symbols.USD, pastData);
+        double currentRubRate = getRubRate(currency, currentData);
+        double pastRubRate = getRubRate(currency, pastData);
 
         double result = amount * (currentRubRate - pastRubRate) * SPREAD;
         return String.format("%.2f", result);
     }
 
+    /**
+     * @param currency код купленной валюты
+     * @param data дата для расчета курса рубля к выбранной валюте
+     * @return курс рубля к выбранной валюте
+     * @throws FixerException ошибки связанные с получением некоректнных даных от сервиса Fixer.io
+     */
     private double getRubRate(Symbols currency, DataResponse data) throws FixerException {
         if (data.getRates() == null) throw new FixerException("курс валют не получен.");
 
@@ -59,6 +71,10 @@ public class CalculateService {
         }
     }
 
+    /**
+     * @param date дата для получения данных о курсе валют
+     * @return данные о курсе валют в выбранный день, полученный от сервиса Fixer.io
+     */
     private DataResponse getData(String date) throws IOException {
         String url = "http://data.fixer.io/api/" + date + "?access_key=" + ACCESS_KEY;
         Request request = new Request.Builder()
